@@ -1,0 +1,6 @@
+name: sample1234
+microsoftTeams:
+  description: sample1234
+  enabled: false
+  name: sample1234
+  usersList: []

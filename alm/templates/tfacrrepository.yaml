@@ -1,0 +1,30 @@
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
+kind: Terraform
+metadata:
+  name: "{{ $.Values.name }}-acrrepository"
+  namespace: flux-system
+  annotations:
+    "helm.sh/hook-weight": "0"
+spec:
+  interval: 1m
+  approvePlan: auto
+  destroyResourcesOnDeletion: true
+  path: ./acr_terraform
+  sourceRef:
+    kind: GitRepository
+    name: terraform-gitops
+    namespace: flux-system
+  vars:
+  - name: name
+    value: {{ $.Values.name }}
+  - name: resource_group
+    value: "{{ $.Values.name }}-rg"
+  - name: location
+    value: "westeurope"
+  dependsOn:
+  - name: "{{ $.Values.name }}-rg"
+  runnerPodTemplate:
+    spec:
+      envFrom:
+      - secretRef:
+          name: azure-service-principal

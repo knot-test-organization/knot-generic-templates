@@ -1,0 +1,14 @@
+{{- if not (eq .Values.technology "java-restclient") -}}
+{{- if .Values.configmap.app.enabled -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-config
+  annotations:
+    "helm.sh/hook-weight": "-10"
+  labels:
+    app: {{ .Values.name }}
+data:
+  {{- toYaml .Values.configmap.app.data | nindent 2 }}
+{{- end }}
+{{- end }}

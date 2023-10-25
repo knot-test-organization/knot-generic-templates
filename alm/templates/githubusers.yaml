@@ -1,0 +1,10 @@
+{{- range $user := .Values.users }}
+apiVersion: users.nttdata.com/v1
+kind: GithubUsers
+metadata:
+  name: {{ $.Values.name }}-{{ $user.name }}
+  namespace: {{ $.Release.Namespace }}
+spec:
+  test: test
+---
+{{- end }}

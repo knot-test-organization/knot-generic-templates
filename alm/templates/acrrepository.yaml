@@ -1,0 +1,14 @@
+{{- if .Values.acroperator }}
+apiVersion: azure.nttdata.com/v1
+kind: ACRRepository
+metadata:
+  name: {{ $.Values.name }}
+  annotations:
+    "helm.sh/hook-weight": "0"
+  namespace: {{ $.Release.Namespace }}
+spec:
+  application_name: {{ $.Values.name }}
+  resource_group: {{ $.Values.name }}-rg
+  # location: westeurope
+  # namespace: {{ $.Release.Namespace }}
+{{- end }}

@@ -1,0 +1,95 @@
+{{- if .Values.devcontainers }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ .Values.name }}-codespaces-gitflow"
+  namespace: "{{ .Release.Namespace }}"
+  labels:
+  annotations:
+    "helm.sh/hook-weight": "0"
+spec:
+  template:
+    metadata:
+      name: "{{ .Values.name }}"
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: "{{ .Values.name }}"
+        image: alpine
+        volumeMounts:
+        - name: {{ .Values.name }}-codespaces-config
+          mountPath: /configmap
+        env:
+        - name: APPLICATION_NAME
+          value: "{{ .Values.name }}"
+        - name: ORGANIZATION_NAME
+          value: "{{ .Values.organizationName }}"
+        command:
+        - /bin/sh
+        - -c
+        - |
+          # Install yq and git
+          apk add yq
+          apk add git
+
+          # Set variables
+          application_name=$APPLICATION_NAME
+          git_username="github-actions[bot]"
+          git_token="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"
+
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # Clone the repo
+          git clone https://$git_username:$git_token@github.com/NTTData-HybridCloud/knot-devcontainers-versions
+
+          # Read the YAML file and extract the list of strings
+          codespaces_list=$(cat "./configmap/codespaces.yaml" | yq -r '.[]')
+
+          # Clone the repo in develop branch
+          git clone -b develop "https://$git_username:$git_token@github.com/NTTData-HybridCloud/$application_name.git"
+
+          # Create the .devcontainer folder
+          mkdir -p $application_name/.devcontainer
+
+          # Iterate over the list
+          for codespace in $codespaces_list; do
+            # Copy the folder to the cloned repo
+            cp -r "./knot-devcontainers-versions/$codespace" "$application_name/.devcontainer/$codespace"
+
+            # Change directory to the cloned repo
+            cd "$application_name"
+
+            # Commit and push the changes to develop branch
+            git add .
+            git commit -m "Added $codespace into .devcontainer folder from knot-devcontainers-versions"
+            git push origin develop
+
+            # Go back to the original path
+            cd -
+          done
+
+          # Change directory to the cloned repo
+          cd "$application_name"
+
+          # Delete README.md
+          rm README.md
+
+          # Add new README.md with the codespaces badge in develop branch
+          cat "../configmap/README.md" > README.md
+
+          # Commit and push the changes to develop branch
+          git add .
+          git commit -m "Added README.md with the codespaces badge"
+          git push origin develop
+
+      volumes:
+        - name: {{ .Values.name }}-codespaces-config
+          configMap:
+            name: {{ .Values.name }}-codespaces-config
+            items:
+            - key: codespaces.yaml
+              path: codespaces.yaml
+            - key: README.md
+              path: README.md
+{{- end }}

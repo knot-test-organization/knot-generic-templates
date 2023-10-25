@@ -1,0 +1,45 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: {{ $.Values.id }}
+  namespace: {{ $.Release.Namespace }}
+spec:
+  generators:
+    - list:
+    {{- if .Values.components }}
+        elements:
+        {{- range $component := $.Values.components }}
+          - productName: {{ $.Values.id }}
+            componentName: {{ $component }}
+            orgName: {{ $.Values.organization }}
+            areaName: {{ $.Values.area }}
+        {{- end }}
+    {{- else }}
+        elements: []
+    {{- end }}
+  template:
+    metadata:
+      name: {{ printf "'{{componentName}}'" }}
+      namespace: {{ $.Release.Namespace }}
+    spec:
+      destination:
+        namespace: gitops
+        server: "https://kubernetes.default.svc"
+      project: {{ printf "'{{productName}}'" }}
+      sources:
+        - repoURL: "https://github.com/NTTData-HybridCloud/knot-generic-templates.git"
+          path: "onboarding-component"
+          targetRevision: HEAD
+          helm:
+            valueFiles:
+              - {{ printf "'$values/products/{{orgName}}/{{areaName}}/{{productName}}/{{componentName}}/values.yaml'" }}
+        - repoURL: 'https://github.com/NTTData-HybridCloud/knot-onboarding-resources.git'
+          targetRevision: HEAD
+          ref: values
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - ApplyOutOfSyncOnly=true
+          - RespectIgnoreDifferences=true

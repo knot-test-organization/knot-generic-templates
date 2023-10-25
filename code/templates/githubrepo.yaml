@@ -1,0 +1,16 @@
+apiVersion: github.repository.nttdata.com/v1
+kind: GithubRepository
+metadata:
+  name: {{ $.Values.name }}-repo
+  namespace: {{ $.Release.Namespace }}
+  annotations:
+    "helm.sh/hook-weight": "-10"
+spec:
+  # Add fields here
+  repo_name: {{ $.Values.repoName }}
+  description: {{ $.Values.repoDescription }}
+  is_private: true
+  organization_name: {{ $.Values.organizationName }}
+  repo_type: {{ $.Values.repoType }}
+  automation_tool: {{ $.Values.automationTool }}
+  git_branching: {{ $.Values.gitBranching }}

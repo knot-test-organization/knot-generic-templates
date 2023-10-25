@@ -1,0 +1,22 @@
+{{- if $.Values.microsoftTeams.enabled }}
+{{- range $user := $.Values.microsoftTeams.usersList }}
+---
+apiVersion: microsoft-teamsuser.nttdata.com/v1
+kind: MicrosoftTeamsUser
+metadata:
+  name: {{ $.Values.name }}-{{ $user.name }}
+  namespace: {{ $.Release.Namespace }}
+  annotations:
+    "helm.sh/hook-weight": "0"
+spec:
+  name: {{ $.Values.microsoftTeams.name }}
+  description: {{ $.Values.microsoftTeams.description }}
+  user_team:
+    id: {{ $user.id }}
+    name: {{ $user.name }}
+    role: {{ $user.role }}
+    azuread_user: {{ $user.azureADUser }}
+    github_role: {{ $user.githubRole }}
+{{- end }}
+{{- end }}
+

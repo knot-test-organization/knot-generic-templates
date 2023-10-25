@@ -1,0 +1,14 @@
+{{- if .Values.sonarqubeScan }}
+apiVersion: cache.sonarqube/v1alpha1
+kind: Sonarqube
+metadata:
+  name: {{ $.Values.name }}
+  annotations:
+    "helm.sh/hook-weight": "5"
+  namespace: {{ $.Release.Namespace }}
+spec:
+  projectName: {{ $.Values.name }}
+  project: {{ $.Values.name }}
+  language: {{ $.Values.projectLanguage }}
+---
+{{- end}}

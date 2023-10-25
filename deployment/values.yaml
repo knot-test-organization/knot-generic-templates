@@ -1,0 +1,117 @@
+name: sample12345
+
+configmap:
+  app:
+    enabled: false
+technology: netcore
+env_vars:
+  enabled: false
+  data:
+    - name: ACTIVEMQ_AUDIT_BROKER-URL
+      valueFrom:
+        secretKeyRef:
+          name: trustore-broker-credentials
+          key: url
+    - name: ACTIVEMQ_AUDIT_USERNAME
+      valueFrom:
+        secretKeyRef:
+          name: trustore-broker-credentials
+          key: username
+    - name: ACTIVEMQ_AUDIT_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: trustore-broker-credentials
+          key: password
+
+serviceAccount: default
+
+image:
+  repository: sample12345.azurecr.io/sample12345
+  tag: 2
+
+replicaCount: 1
+
+resources:
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  limits:
+    cpu: 300m
+    memory: 700Mi
+  requests:
+    cpu: 50m
+    memory: 200Mi
+
+liveness:
+  enabled: false
+  config:
+    path: /actuator/health/liveness
+    port: 8081
+    scheme: HTTP
+    initialDelaySeconds: 10
+    timeoutSeconds: 1
+    periodSeconds: 10
+    successThreshold: 1
+    failureThreshold: 5
+startup:
+  enabled: false
+  config:
+    path: /actuator/health/liveness
+    port: 8081
+    scheme: HTTP
+    initialDelaySeconds: 40
+    timeoutSeconds: 1
+    periodSeconds: 10
+    successThreshold: 1
+    failureThreshold: 20
+readiness:
+  enabled: false
+  config:
+    path: /actuator/health/liveness
+    port: 8081
+    scheme: HTTP
+    initialDelaySeconds: 10
+    timeoutSeconds: 1
+    periodSeconds: 10
+    successThreshold: 1
+    failureThreshold: 5
+
+istio:
+  enabled: true
+  resources:
+    proxyCPU: 50m
+    proxyMemory: 150Mi
+  authorizationPolicy:
+    enabled: false
+  virtualservice:
+    enabled: true
+    hosts: knot.westeurope.cloudapp.azure.com
+
+jaeger:
+  enabled: false
+  name: mesh-jaeger
+  volume:
+    enabled: false
+  resources:
+    limits:
+      cpu: 300m
+      memory: 400Mi
+    requests:
+      cpu: 50m
+      memory: 100Mi
+
+namespace: gitops
+environment: des
+
+service:
+  port: 8080
+  port_ssl: 8443
+
+secret:
+  app:
+    enabled: false
+  trustore:
+    enabled: false
+    name: cnp-amqp-secret-clientts
+    mountPath: /secret/trustore

@@ -1,0 +1,20 @@
+{{- if eq $.Values.automationTool "tekton" }}
+{{- range $pipeline := .Values.pipelines }}
+apiVersion: tekton.nttdata.com/v1
+kind: TektonPipeline
+metadata:
+  name: {{ $.Values.name }}-{{ $pipeline.name }}
+  annotations:
+    "helm.sh/hook-weight": "10"
+  namespace: {{ $.Release.Namespace }}
+spec:
+  application_name: {{ $.Values.name }}
+  sonarqube_scan: {{ $.Values.sonarqubeScan }}
+  project_type: {{ $.Values.projectType }}
+  pipeline_template: {{ $.Values.pipelineTemplate }}
+  id_product: {{ $.Values.idProduct }}
+  organization_product: {{ $.Values.organizationProduct }}
+  area_product: {{ $.Values.areaProduct }}
+---
+{{- end }}
+{{- end }}

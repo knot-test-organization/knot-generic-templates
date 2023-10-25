@@ -1,0 +1,126 @@
+{{- if not (eq .Values.technology "java-restclient") -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    "helm.sh/hook-weight": "10"
+  labels:
+    app: {{ .Values.name }}
+    component: {{ .Release.Name }}
+  name: {{ .Release.Name }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end}}
+  selector:
+    matchLabels:
+      app: {{ .Values.name }}
+      component: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.name }}
+        component: {{ .Release.Name }}
+        version:  "{{ .Values.image.tag }}"
+      annotations:
+        # dapr.io/enabled: "true"
+        # dapr.io/app-id: "test-sidecar"
+        # dapr.io/app-port: "3000"
+        # dapr.io/log-level: "debug"
+        # dapr.io/enable-api-logging: "true"
+      #   {{- if .Values.istio.enabled }}
+      #   sidecar.istio.io/inject: "true"
+      #   sidecar.istio.io/proxyCPU: {{ .Values.istio.resources.proxyCPU }}
+      #   sidecar.istio.io/proxyMemory: {{ .Values.istio.resources.proxyMemory }}
+      #   {{- end}}
+    spec:
+      containers:
+      - name: {{ .Release.Name }}
+        {{- if .Values.liveness.enabled }}
+        livenessProbe:
+          httpGet:
+            path: {{ .Values.liveness.config.path }}
+            port: {{ .Values.liveness.config.port }}
+            scheme: {{ .Values.liveness.config.scheme }}
+          initialDelaySeconds: {{ .Values.liveness.config.initialDelaySeconds }}
+          timeoutSeconds: {{ .Values.liveness.config.timeoutSeconds }}
+          periodSeconds: {{ .Values.liveness.config.periodSeconds }}
+          successThreshold: {{ .Values.liveness.config.successThreshold }}
+          failureThreshold: {{ .Values.liveness.config.failureThreshold }}
+        {{- end}}
+        {{- if .Values.startup.enabled }}
+        startupProbe:
+          httpGet:
+            path: {{ .Values.startup.config.path }}
+            port: {{ .Values.startup.config.port }}
+            scheme: {{ .Values.startup.config.scheme }}
+          initialDelaySeconds: {{ .Values.startup.config.initialDelaySeconds }}
+          timeoutSeconds: {{ .Values.startup.config.timeoutSeconds }}
+          periodSeconds: {{ .Values.startup.config.periodSeconds }}
+          successThreshold: {{ .Values.startup.config.successThreshold }}
+          failureThreshold: {{ .Values.startup.config.failureThreshold }}
+        {{- end}}
+        {{- if .Values.readiness.enabled }}
+        readinessProbe:
+          httpGet:
+            path: {{ .Values.readiness.config.path }}
+            port: {{ .Values.readiness.config.port }}
+            scheme: {{ .Values.readiness.config.scheme }}
+          initialDelaySeconds: {{ .Values.readiness.config.initialDelaySeconds }}
+          timeoutSeconds: {{ .Values.readiness.config.timeoutSeconds }}
+          periodSeconds: {{ .Values.readiness.config.periodSeconds }}
+          successThreshold: {{ .Values.readiness.config.successThreshold }}
+          failureThreshold: {{ .Values.readiness.config.failureThreshold }}
+        {{- end}}
+        {{- if .Values.env_vars.enabled }}
+        env:
+          {{- toYaml .Values.env_vars.data | nindent 8 }}
+        {{- end}}
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}
+        imagePullPolicy: Always
+        {{- if .Values.secret.app }}
+        {{- if .Values.secret.app.enabled }}
+        envFrom:
+        - secretRef:
+            name: {{ .Release.Name }}-code-secret
+        {{- end }}
+        {{- end }}
+        ports:
+        - containerPort: {{ .Values.service.port }}
+          protocol: TCP
+        - containerPort: {{ .Values.service.port_ssl }}
+          protocol: TCP
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}
+        terminationMessagePath: "/dev/termination-log"
+        # volumeMounts:
+        #   {{- if .Values.secret.trustore.enabled }}
+        #   - name: {{ .Values.secret.trustore.name }}
+        #     mountPath: {{ .Values.secret.trustore.mountPath }}
+        #     subPath: {{ .Values.secret.trustore.subPath }}
+        #   {{- end }}
+      imagePullSecrets:
+      - name: {{ .Values.name }}
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      securityContext: {}
+      serviceAccount: {{ .Values.serviceAccount }}
+      serviceAccountName: {{ .Values.serviceAccount }}
+      terminationGracePeriodSeconds: 30
+      # volumes: 
+      #   {{- if .Values.secret.trustore.enabled }}
+      #   - name: {{ .Values.secret.trustore.name }}
+      #     secret:
+      #       defaultMode: 420
+      #       secretName: {{ .Values.secret.trustore.name }}
+      #   {{- end }}
+      #   {{- if .Values.jaeger.volume.enabled }}
+      #   - configMap:	
+      #       defaultMode: {{ .Values.jaeger.volume.defaultMode }}
+      #       items:	
+      #         - key: {{ .Values.jaeger.volume.items.key }}
+      #           path: {{ .Values.jaeger.volume.items.path }}
+      #       name: {{ .Values.jaeger.volume.name	}}
+      #     name: {{ .Values.jaeger.volume.name }}
+      #   {{- end }}
+{{- end }}

@@ -1,0 +1,45 @@
+{{- if .Values.database }}
+{{- if .Values.database.createDatabase }}
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
+kind: Terraform
+metadata:
+  name: "{{ $.Values.name }}-database"
+  namespace: flux-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  interval: 1m
+  approvePlan: auto
+  destroyResourcesOnDeletion: true
+  path: ./{{ lower $.Values.database.type }}_terraform
+  sourceRef:
+    kind: GitRepository
+    name: terraform-gitops
+    namespace: flux-system
+  vars:
+  - name: type
+    value: {{ $.Values.database.type }}
+  - name: tier
+    value: {{ $.Values.database.tier }}
+  - name: db_version
+    value: {{ $.Values.database.dbVersion }}
+  - name: name
+    value: {{ $.Values.database.name }}
+  - name: user
+    value: {{ $.Values.database.user }} 
+  - name: password
+    value: {{ $.Values.database.password }}
+  - name: resource_group
+    value: "{{ $.Values.name }}-rg"
+  - name: location
+    value: "westeurope"
+  writeOutputsToSecret:
+    name: "{{ $.Values.name }}-database"
+  runnerPodTemplate:
+    spec:
+      envFrom:
+      - secretRef:
+          name: azure-service-principal
+---
+{{- end }}
+{{- end }}

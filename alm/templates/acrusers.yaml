@@ -1,0 +1,10 @@
+{{ range $user := .Values.users }}
+apiVersion: azure.nttdata.com/v1
+kind: ACRUsers
+metadata:
+  name: {{ $.Values.name }}-{{ $user.name }}
+  namespace: {{ $.Release.Namespace }}
+spec:
+  test: test
+---
+{{- end }}

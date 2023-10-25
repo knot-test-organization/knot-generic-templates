@@ -1,0 +1,43 @@
+{{- range $environment := .Values.environments }}
+{{- if $environment.enabled }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: "{{ $.Release.Name }}-{{ $environment.envPath }}-deployment"
+  labels:
+    TeamLeads: "{{ $.Release.Name }}-leads"
+    TeamDevelopers: "{{ $.Release.Name }}-developers"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    "helm.sh/hook-weight": "10"  
+spec:
+  project: "{{ $.Values.productDetails.id }}"
+  sources:
+  {{- if eq $.Values.technology "dedalowspring" }}
+  - repoURL: https://github.com/NTTData-HybridCloud/knot-charts-dedalow-templates-spring.git
+    path: .
+  {{- else }}
+  - repoURL: https://github.com/{{ $.Values.organizationName }}/knot-generic-templates.git
+    path: deployment
+  {{- end }}
+    targetRevision: HEAD
+    helm:
+      valueFiles:
+      - $values/products/{{ $.Values.productDetails.organization }}/{{ $.Values.productDetails.area }}/{{ $.Values.productDetails.id }}/{{ $.Release.Name }}/deployment/{{ $environment.envPath }}/values.yaml
+  - repoURL: https://github.com/{{ $.Values.organizationName }}/knot-onboarding-resources.git
+    targetRevision: HEAD
+    ref: values  
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: {{ $environment.nameSpace }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ApplyOutOfSyncOnly=true
+      - RespectIgnoreDifferences=true
+{{- end }}
+{{- end }}

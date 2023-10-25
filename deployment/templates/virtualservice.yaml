@@ -1,0 +1,29 @@
+{{- if not (eq .Values.technology "java-restclient") -}}
+{{- if and .Values.istio.enabled .Values.istio.virtualservice.enabled -}}
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: {{ .Release.Name }}-vs
+  annotations:
+    "helm.sh/hook-weight": "-10"
+  labels:
+    app: {{ .Values.name }}
+    component: {{ .Release.Name }}
+spec:
+  hosts:
+  - "{{ .Values.istio.virtualservice.hosts }}"
+  gateways:
+  - gitops/knot-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /{{ .Release.Name }}/
+    rewrite:
+      uri: "/"
+    route:
+    - destination:
+        host: {{ .Release.Name }}
+        port:
+          number: {{ .Values.service.port }}
+{{- end }}
+{{- end }}

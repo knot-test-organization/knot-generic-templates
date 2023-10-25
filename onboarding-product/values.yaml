@@ -1,0 +1,25 @@
+id: "knot"
+name: "KNOT"
+description: "knot description"
+organization: "nttdata"
+area: "dar"
+po: "epradocl"
+teams:
+- "knot-leads"
+- "knot-developers"
+version: "1.0.0"
+environments:
+- enabled: true
+  envPath: "development"
+  nameSpace: "dev"
+  version: "0.0.0"
+- enabled: false
+  envPath: "stage"
+  nameSpace: "pre"
+  version: ""
+- enabled: false
+  envPath: "production"
+  nameSpace: "pro"
+  version: ""
+components: []
+date: "05/10/2023 12:39"

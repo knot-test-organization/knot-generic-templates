@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: "{{ $.Release.Name }}-code"
+  labels:
+    TeamLeads: "{{ $.Release.Name }}-leads"
+    TeamDevelopers: "{{ $.Release.Name }}-developers"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    "helm.sh/hook-weight": "10"  
+spec:
+  project: "{{ $.Values.productDetails.id }}"
+  sources:
+  - repoURL: https://github.com/{{ $.Values.organizationName }}/knot-generic-templates.git
+    path: code
+    targetRevision: HEAD
+    helm:
+      valueFiles:
+      - $values/products/{{ $.Values.productDetails.organization }}/{{ $.Values.productDetails.area }}/{{ $.Values.productDetails.id }}/{{ $.Release.Name }}/code/values.yaml
+  - repoURL: https://github.com/{{ $.Values.organizationName }}/knot-onboarding-resources.git
+    targetRevision: HEAD
+    ref: values  
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: "{{ $.Release.Namespace }}"
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ApplyOutOfSyncOnly=true
+      - RespectIgnoreDifferences=true

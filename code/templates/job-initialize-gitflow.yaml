@@ -1,0 +1,73 @@
+{{- if eq $.Values.gitBranching "gitflow" }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ .Values.name }}-initialize-gitflow"
+  namespace: "{{ .Release.Namespace }}"
+  labels:
+  annotations:
+    "helm.sh/hook-weight": "0"
+spec:
+  template:
+    metadata:
+      name: "{{ .Values.name }}"
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: "{{ .Values.name }}"
+          image: alpine
+          env:
+            - name: APPLICATION_NAME
+              value: "{{ .Values.repoName }}"
+            - name: DESCRIPTION
+              value: "{{ .Values.repoDescription }}"
+            - name: ORGANIZATION_NAME
+              value: "{{ .Values.organizationName }}"
+          command:
+            - /bin/sh
+            - -c
+            - |
+              # Install Git
+              apk add --no-cache git
+
+              # Set variables
+              git_username="github-actions[bot]"
+              git_token="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"
+
+              # Clone the repo
+              git clone https://$git_username:$git_token@github.com/$ORGANIZATION_NAME/$APPLICATION_NAME.git
+              
+               # Check for the existence of the 'develop' branch and wait until it's found
+              while true; do
+                if git -C "$APPLICATION_NAME" ls-remote --heads origin develop | grep develop; then
+                  break
+                else
+                  echo "'develop' branch not found, waiting..."
+                  sleep 10
+                fi
+              done
+
+              git -C "$APPLICATION_NAME"  checkout develop
+
+              # Iterate through template files and perform text replacements
+              find "$APPLICATION_NAME" -type f | while IFS= read -r template_file; do
+                for replacement in "{name}:$APPLICATION_NAME" "{description}:$DESCRIPTION" "{artifact_id}:$APPLICATION_NAME" "{netcore_project_name}:$APPLICATION_NAME"; do
+                  old_text="${replacement%%:*}"
+                  new_text="${replacement#*:}"
+
+                  # Perform the replacement using sed
+                  sed -i "s/${old_text}/${new_text}/g" "$template_file"
+                done
+              done
+
+              # Set credentials
+              git config --global user.name "github-actions[bot]"
+              git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+              # Commit and push the changes
+              cd $APPLICATION_NAME
+              git pull
+              git add .
+              git commit -m "Initialize the repository"
+              git push
+{{- end }}              

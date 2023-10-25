@@ -1,0 +1,30 @@
+{{- if not (eq .Values.technology "java-restclient") -}}
+{{- if and .Values.istio.enabled .Values.istio.authorizationPolicy.enabled -}}
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: ees-app-{{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "helm.sh/hook-weight": "-10"
+spec:
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            requestPrincipals:
+              - '*'
+    - to:
+        - operation:
+            paths:
+              - /{{ .Release.Name }}/swagger-ui.html
+              - /{{ .Release.Name }}/swagger-resources
+              - /{{ .Release.Name }}/swagger-resources/*
+              - /{{ .Release.Name }}/v2/*
+              - /{{ .Release.Name }}/webjars/*
+  selector:
+    matchLabels:
+      app: {{ .Values.name }}
+      component: {{ .Release.Name }}
+{{- end }}
+{{- end }}

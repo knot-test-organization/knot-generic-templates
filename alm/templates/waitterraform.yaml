@@ -1,0 +1,39 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ $.Values.name }}-wait-for-terraform
+  annotations:
+    "helm.sh/hook-weight": "5"
+spec:
+  template:
+    spec:
+      serviceAccountName: tektonpipelineoperator-controller-manager
+      containers:
+        - name: {{ $.Values.name }}-wait-for-terraform-container
+          image: alpine:3.17
+          env:
+          - name: SECRET_NAME
+            value: {{ $.Values.name }}
+          command:
+            - sh
+            - -c
+            - |
+              # Install necessary dependencies
+              apk add --no-cache curl gnupg
+
+              # Download and install kubectl
+              curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
+              chmod +x kubectl
+              mv kubectl /usr/local/bin/
+
+              # Retrieve the secret name
+              COMMAND=""
+              while [[ -z "$COMMAND" ]]; do
+                COMMAND=$(kubectl get secrets $SECRET_NAME -n gitops -o jsonpath='{.metadata.name}')
+
+                if [[ -z "$COMMAND" ]]; then
+                  echo "Waiting for secret name to be set..."
+                  sleep 10
+                fi
+              done
+      restartPolicy: Never

@@ -1,0 +1,13 @@
+apiVersion: github.team.nttdata.com/v1
+kind: GithubTeam
+metadata:
+  name: {{ $.Values.name }}-team-leads
+  namespace: {{ $.Release.Namespace }}
+  annotations:
+    "helm.sh/hook-weight": "0"
+spec:
+  # Add fields here
+  repo_name: knot-product-{{ .Values.repoName }}-leads
+  description: {{ .Values.repoDescription }}
+  organization_name: {{ .Values.organizationName }}
+  # parent: "disabled"

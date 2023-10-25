@@ -1,0 +1,26 @@
+{{- if not (eq .Values.technology "java-restclient") -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}
+  annotations:
+    "helm.sh/hook-weight": "-10"
+  labels:
+    app: {{ .Values.name }}
+    component: {{ .Release.Name }}
+spec:
+  ports:
+  - name: http-{{ .Release.Name }}
+    port: {{ .Values.service.port }}
+    protocol: TCP
+    targetPort: {{ .Values.service.port }}
+  - name: https-{{ .Release.Name }}
+    port: {{ .Values.service.port_ssl }}
+    protocol: TCP
+    targetPort: {{ .Values.service.port_ssl }}
+  selector:
+    app: {{ .Values.name }}
+    component: {{ .Release.Name }}
+  sessionAffinity: None
+  type: ClusterIP
+{{- end }}

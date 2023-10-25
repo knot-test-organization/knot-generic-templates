@@ -1,0 +1,38 @@
+{{- if not (eq .Values.technology "java-restclient") -}}
+{{- if .Values.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ .Release.Name }}
+  annotations:
+    "helm.sh/hook-weight": "10"
+  labels:
+    app: {{ .Values.name }}
+spec:
+  minReplicas: {{ .Values.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.autoscaling.maxReplicas }}
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ .Release.Name }}
+{{- if or .Values.autoscaling.targetAverageUtilization .Values.autoscaling.targetMemoryAverageUtilization }}
+  metrics:
+{{- if .Values.autoscaling.targetMemoryAverageUtilization }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: AverageValue
+          averageValue: {{ .Values.autoscaling.targetMemoryAverageUtilization }}
+{{- end }}
+{{- if .Values.autoscaling.targetAverageUtilization }}
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.autoscaling.targetAverageUtilization }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

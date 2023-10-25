@@ -1,0 +1,15 @@
+{{- range $user := .Values.users }}
+---
+apiVersion: github.team.user.nttdata.com/v1alpha1
+kind: GithubTeamUser
+metadata:
+  name: {{ $.Values.name }}-team-user-{{ $user.name | lower }}
+  namespace: {{ $.Release.Namespace }}
+  annotations:
+    "helm.sh/hook-weight": "5"
+spec:
+  repo_name: {{- if eq $user.githubRole "member" }} knot-product-{{ $.Values.repoName }}-developers {{- else if eq $user.githubRole "maintainer"}} knot-product-{{ $.Values.repoName }}-leads {{- end }} 
+  organization_name: {{ $.Values.organizationName }}
+  name: {{ $user.name }} 
+  github_role: {{ $user.githubRole }}
+{{- end -}}

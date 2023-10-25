@@ -1,0 +1,83 @@
+id: "dotnet0910"
+name: ".Net Core API"
+almEnabled: true
+codeEnabled: true
+collaborationEnabled: true
+deployEnabled: true
+iacEnabled: true
+ha: false
+minReplicas: 1
+maxReplicas: 1
+environments:
+- enabled: true
+  envPath: "development"
+  nameSpace: "dev"
+  version: "0.0.0"
+- enabled: false
+  envPath: "stage"
+  nameSpace: "pre"
+  version: ""
+- enabled: false
+  envPath: "production"
+  nameSpace: "pro"
+  version: ""
+targetAverageUtilization: 0
+targetMemoryAverageUtilization: null
+description: ".Net Core API Description"
+type: "front"
+technology: "netcore"
+repository: "github"
+automationTool: "tekton"
+pipelineTemplate: "knot-netcore-pipeline"
+gitBranching: "gitflow"
+containerRegistry: "acr"
+artifactRegistry: null
+bbdd:
+  enabled: false
+  name: null
+  type: null
+  admin: null
+  adminPass: null
+  version: null
+  tier: null
+edge: true
+dockerImage: true
+organizationName: "NTTData-HybridCloud"
+users:
+- id: "129195676"
+  name: "bchemsed"
+  role: "Project Leader"
+  azureADUser: ""
+  githubRole: "maintainer"
+  externalSecretName: null
+- id: "129195468"
+  name: "ccrespca"
+  role: "Project Leader"
+  azureADUser: ""
+  githubRole: "maintainer"
+  externalSecretName: null
+devcontainers: null
+date: "09/10/2023 07:01"
+sonarqubeScan: false
+codespaces: []
+microsoftTeams:
+  enabled: false
+  name: ".Net Core API"
+  description: ".Net Core API Description"
+  usersList:
+  - id: "129195676"
+    name: "bchemsed"
+    role: "Project Leader"
+    azureADUser: ""
+    githubRole: "maintainer"
+    externalSecretName: null
+  - id: "129195468"
+    name: "ccrespca"
+    role: "Project Leader"
+    azureADUser: ""
+    githubRole: "maintainer"
+    externalSecretName: null
+productDetails:
+  id: knotproduct
+  organization: nttdata
+  area: dar

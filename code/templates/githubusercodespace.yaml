@@ -1,0 +1,22 @@
+{{- range $codespace := $.Values.codespaces }}
+{{- if $codespace.username }}
+---
+apiVersion: codespaces.user.github.nttdata.com/v1
+kind: GithubUserCodespace
+metadata:
+  name: {{ $.Values.repoName }}-{{ $codespace.devContainer }}-user-codespace-{{ $codespace.username | lower }}
+  namespace: {{ $.Release.Namespace }}
+  annotations:
+    "helm.sh/hook-weight": "10"
+spec:
+  # Add fields here
+  repo_name: {{ $.Values.repoName }}
+  organization_name: {{ $.Values.organizationName }}
+  branch: {{ $codespace.branch }}
+  devcontainer: {{ $codespace.devContainer }}
+  machine_type: {{ $codespace.machineType }}
+  region: {{ $codespace.region }}
+  repository_id: {{ $codespace.repositoryId }}
+  username: {{ $codespace.username }}
+{{- end -}}  
+{{- end -}}

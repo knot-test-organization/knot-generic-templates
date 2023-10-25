@@ -1,0 +1,17 @@
+{{- if .Values.devcontainers }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.name }}-codespaces-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Values.name }}
+  annotations:
+    "helm.sh/hook-weight": "-10"
+data:
+  codespaces.yaml: |
+{{- .Values.devcontainers | toYaml | nindent 4 }}
+  README.md: |
+    # {{ .Values.name }}
+    <a href='https://codespaces.new/{{ .Values.organizationName }}/{{ .Values.name }}'><img src='https://github.com/codespaces/badge.svg' alt='Open in GitHub Codespaces' style='max-width: 100%;'></a>
+{{- end }}

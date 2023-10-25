@@ -1,0 +1,16 @@
+projectType: netcore
+name: sample12345
+repoName: sample12345
+repoDescription: "this is a description"
+organizationName: "NTTData-HybridCloud"
+sonarqubeScan: false
+pipelineTemplate: "build-with-sonarqube"
+idProduct: sample12345
+organizationProduct: sample12345
+areaProduct: sample12345
+
+acroperator: true
+
+users: []
+pipelines:
+- name: ci

@@ -1,0 +1,13 @@
+apiVersion: github.repository.team.nttdata.com/v1
+kind: GithubRepositoryTeam
+metadata:
+  name: {{ $.Values.name }}-repository-team-leads
+  namespace: {{ $.Release.Namespace }}
+  annotations:
+    "helm.sh/hook-weight": "10"
+spec:
+  # Add fields here
+  repo_name: {{ .Values.repoName }}
+  team_slug_name: knot-product-{{ .Values.repoName }}-leads
+  permission: admin
+  organization_name: {{ .Values.organizationName }}
